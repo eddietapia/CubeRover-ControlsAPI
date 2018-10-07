@@ -1,4 +1,4 @@
-# Project Title
+# CubeRover Control API
 
 CubeRover controls will allow us to physically control a lunar rover remotely. 
 
@@ -78,7 +78,7 @@ Current Version: 1.0
 
 ## Authors
 
-* **CMU Lunar Robotics Airsim subteam** - *Initial work*
+* **CMU Lunar Robotics Teleoperations Team ** - *Initial work*
 
 See also the list of [contributors](https://github.com/etapiahe/CubeRover-ControlsAPI/contributors) who participated in this project.
 
