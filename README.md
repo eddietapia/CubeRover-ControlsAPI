@@ -5,38 +5,54 @@ CubeRover controls will allow us to physically control a lunar rover remotely.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine
+for development and testing purposes. See deployment for notes on how to deploy the project
+on a live system.
+<br><br>
+AirSim exposes APIs so you can interact with vehicle in the simulation programmatically.
+You can use these APIs to retrieve images, get state, control the vehicle and so on.
 
-### Prerequisites
+### Python Quickstart
+If you want to use Python to call AirSim APIs, we recommend using Anaconda with Python 3.5
+or later versions however some code may also work with Python 2.7
+([help us](https://github.com/Microsoft/AirSim/blob/master/docs/contributing.md)improve compatibility!).
 
-To get started, you will need to have python installed in your system. 
-You can download python from python.org or using Anaconda. 
-To test if you installed correctly, run the following command. 
-
-```
-python
-```
-If the python interpretor begins, you have downloaded it successfully. 
-If it gave you an error, please double check you have installed python correctly.
-
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+The first thing you need to do is make sure you have python and pip installed on your
+computer. <br><br>
+Then install this package:
 
 ```
-Give the example
+pip install msgpack-rpc-python
 ```
 
-And repeat
+You can either get AirSim binaries from [releases](https://github.com/Microsoft/AirSim/releases)
+or compile from the source ([Windows](https://github.com/Microsoft/AirSim/blob/master/docs/build_windows.md),
+[Linux](https://github.com/Microsoft/AirSim/blob/master/docs/build_linux.md)).
+Once you can run AirSim, choose Car as vehicle and then navigate to `PythonClient\car\` folder and run:
 
 ```
-until finished
+python hello_car.py
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+If you are using Visual Studio 2017 then just open AirSim.sln, set PythonClient as startup
+project and choose `car\hello_car.py` as your startup script.
+
+### Installing AirSim Package
+You can also install `airsim` package simply by,
+
+```
+pip install airsim
+```
+
+You can find source code and samples for this package in `PythonClient` folder in your repo.
+
+**Notes**
+1. You may notice a file `setup_path.py` in our example folders. This file has simple code to
+detect if `airsim` package is available in parent folder and in that case we use that instead
+of pip installed package so you always use latest code.
+2. AirSim is still under heavy development which means you might frequently need to update the
+package to use new APIs.
+
 
 ## Running the tests
 

@@ -1,58 +1,55 @@
-import setup_path 
 import airsim
-
 import time
 import os
 import numpy as np
 from PIL import Image
-import argparse
-import sys
 import io
 import cv2
 import math
 import copy
 
+# TODO: Get rid of unused imports
+import argparse
+import sys
+import setup_path
 
-class Airsim_console():
+class AirsimConsole:
 
     def __init__(self):
         print("Connecting to Airsim Client: ")
         self.client = airsim.CarClient()
         self.client.confirmConnection()
-        print("Connection confirmed, Enabling Car controls ")
+        print("Connection confirmed. Enabling car controls ")
         self.client.enableApiControl(True)
-        self.car_controls= airsim.CarControls()
+        self.car_controls = airsim.CarControls()
 
-        print("Car Controls enabled, Please enter Command parameters ")
-        self.car_state=self.client.getCarState()
+        print("Car controls enabled. Please enter command parameters ")
+        self.car_state = self.client.getCarState()
         self.mode = bool(input("Input car Mode: True (distance commands) " or "False"))
-        if(self.mode):
-            print("Going to Distance mode! ")
+        if self.mode:
+            print("Going to distance mode! ")
             pass
         else:
-            self.repeat= int(input("How many repeats? " or "3"))
-        self.record= bool(input("Record Images? " or "False"))
-        self.fold= os.getcwd()+'/pictures3/'
+            self.repeat = int(input("How many repeats? " or "3"))
+        self.record = bool(input("Record Images? " or "False"))
+        self.fold = os.getcwd()+'/pictures3/'
 
         self.projectionMatrix = np.array([[1, 0.000000000, 0.000000000, -127.5000000000],
                               [0.000000000, 1, 0.000000000, -71.5000000000],
                               [0.000000000, 0.000000000, 1.00000000, 127.5 ],
                             [0.000000000, 0.000000000, -1/20.0000000, 0.000000000]])
     
-        color = (0,255,0)
+        color = (0, 255, 0)
         self.rgb = "%d %d %d" % color
 
-    def savePointCloud(self,image, fileName):
-       f = open(fileName, "w")
-       for x in range(image.shape[0]):
-         for y in range(image.shape[1]):
-            pt = image[x,y]
-            if (math.isinf(pt[0]) or math.isnan(pt[0])):
-              # skip it
-              None
-            else: 
-              f.write("%f %f %f %s\n" % (pt[0], pt[1], pt[2]-1, self.rgb))
-       f.close()
+    def save_point_cloud(self, image, file_name):
+        f = open(file_name, "w")
+        for x in range(image.shape[0]):
+            for y in range(image.shape[1]):
+                pt = image[x,y]
+                if not (math.isinf(pt[0]) or math.isnan(pt[0])):
+                    f.write("%f %f %f %s\n" % (pt[0], pt[1], pt[2]-1, self.rgb))
+        f.close()
 
     def grab_images(self,idx2):
         responses = self.client.simGetImages([
@@ -71,10 +68,11 @@ class Airsim_console():
 
             if response.pixels_as_float:
                 print("Type %d, size %d" % (response.image_type, len(response.image_data_float)))
-                depth_img=response
-                dimg_array=np.array(response.image_data_float).reshape(144,256)
-                dimg2=copy.deepcopy(((dimg_array/(dimg_array.max()))*255).astype(np.uint8))
-                dimg= Image.fromarray(dimg2)
+                # TODO: Do something with the depth img
+                depth_img = response
+                dimg_array = np.array(response.image_data_float).reshape(144,256)
+                dimg2 = copy.deepcopy(((dimg_array/(dimg_array.max()))*255).astype(np.uint8))
+                dimg = Image.fromarray(dimg2)
                 if dimg.mode != 'RGB':
                     dimg = dimg.convert('RGB')
                 
@@ -82,27 +80,31 @@ class Airsim_console():
                 dimg.save(os.path.normpath(filename+'_depth.png'))
                 dimg = dimg.convert('I')
 
-                rawImage = self.client.simGetImage(0, airsim.ImageType.DepthPerspective,"")
-                #png= np.array(rawImage[0].image_data_float,dtype=np.uint8).reshape(144,256)
-                png = cv2.imdecode(np.frombuffer(rawImage, np.uint8) , cv2.IMREAD_UNCHANGED)
+                raw_image = self.client.simGetImage(0, airsim.ImageType.DepthPerspective,"")
+                # TODO: Figure out if we will get rid of this line
+                # png = np.array(raw_image[0].image_data_float,dtype=np.uint8).reshape(144,256)
+                png = cv2.imdecode(np.frombuffer(raw_image, np.uint8) , cv2.IMREAD_UNCHANGED)
                 gray = cv2.cvtColor(png, cv2.COLOR_BGR2GRAY)
-                Image3D = cv2.reprojectImageTo3D(np.array(gray), self.projectionMatrix)
+                image_3d = cv2.reprojectImageTo3D(np.array(gray), self.projectionMatrix)
                 print("Saving Point Cloud!")
-                self.savePointCloud(np.array(Image3D), filename+'_cloudpoint.asc')
-
-                #airsim.write_file(os.path.normpath(file_name+'_depth.png'),)
-            elif response.compress: #png format
+                self.save_point_cloud(np.array(image_3d), filename + '_cloudpoint.asc')
+                # TODO: Will we be saving this file?
+                # airsim.write_file(os.path.normpath(file_name+'_depth.png'),)
+            elif response.compress:
+                # PNG format
                 print("Type %d, size %d" % (response.image_type, len(response.image_data_uint8)))
-                #print(type(response.image_data_uint8))
+                # print(type(response.image_data_uint8))
                 print("Saving RGB Image!")
                 airsim.write_file(os.path.normpath(filename + '.png'), response.image_data_uint8)
-                img_data=Image.open(io.BytesIO(response.image_data_uint8))
+                img_data = Image.open(io.BytesIO(response.image_data_uint8))
                 if img_data.mode != 'RGB':
                     img_data = img_data.convert('RGB')
-                #img_data.show()
+                # img_data.show()
 
-            else: #uncompressed array
+            else:
+                # Uncompressed array
                 pass
+                # TODO: Figure out if we will be needing this
                 # print("Type %d, size %d" % (response.image_type, len(response.image_data_uint8)))
                 # img1d = np.fromstring(response.image_data_uint8, dtype=np.uint8) #get numpy array
                 # img_rgba = img1d.reshape(response.height, response.width, 4) #reshape array to 4 channel image array H X W X 4
@@ -110,114 +112,119 @@ class Airsim_console():
                 # img_rgba[:,:,1:2] = 100 #just for fun add little bit of green in all pixels
                 # airsim.write_png(os.path.normpath(filename + '.greener.png'), img_rgba) #write to png 
 
-        self.img_data=img_data
-        self.dimg=dimg
+        # TODO: Double check this doesn't cause any errors.
+        # There are cases where dimg will be referenced before assignment
+        self.img_data = img_data
+        self.dimg = dimg
 
     def run_cmds(self):
         print("Starting systems! Please initialize :")
-        cnt=0
+        cnt = 0
 
-        if(self.mode == False):
-            while cnt<self.repeat:
-                self.car_controls.throttle=float(input("Car Throttle (0-1): ") or "0")
-                steer=input("Car Steering left or right : " or "forward")
+        if not self.mode:
+            while cnt < self.repeat:
+                self.car_controls.throttle = float(input("Car Throttle (0-1): ") or "0")
+                steer = input("Car Steering left or right : " or "forward")
 
-                # check first if the brakes are on
-                if(self.car_controls.brake ==1):
+                # Check if the brakes are on
+                if self.car_controls.brake == 1:
                     self.car_controls.brake = 0
                 else:
+                    # TODO: Get rid of this statement if we won't be doing anything
                     pass
 
-                if(steer == "left"):
+                if steer == "left":
                     self.car_controls.steering=-0.5
-                elif(steer == "right"):
+                elif steer == "right":
                     self.car_controls.steering=0.5
-                elif(steer == "" or steer == "forward"):
+                elif steer == "" or steer == "forward":
                     self.car_controls.steering=0
-                elif(steer=="brake"):
+                elif steer == "brake":
                     self.car_controls.brake= 1
-                elif (steer == "reverse"):
-                    self.car_controls.is_manual_gear = True;
+                elif steer == "reverse":
+                    self.car_controls.is_manual_gear = True
                     self.car_controls.manual_gear = -1
                     self.car_controls.steering = 0
                 
                 self.client.setCarControls(self.car_controls)
                 print("Go Forward")
                 time.sleep(2)
-                if(self.car_controls.is_manual_gear == True):
-                    self.car_controls.is_manual_gear = False; # change back gear to auto
+                if self.car_controls.is_manual_gear:
+                    self.car_controls.is_manual_gear = False # Change back gear to auto
                     self.car_controls.manual_gear = 0  
 
-                if(self.record==True):
+                if self.record:
                     self.grab_images(cnt)
                 else:
+                    #TODO: Get rid of this statement if we won't be doing anything
                     pass
 
-
-                cnt=cnt+1
+                cnt = cnt + 1
         else:
-            cmds= input("Please input commands (split by space): Throttle direction ")
-              # check first if the brakes are on
-            
-            cmds_list= cmds.split(" ") 
-            iterations= len(cmds_list)
+            cmds = input("Please input commands (split by space): Throttle direction ")
+            cmds_list = cmds.split(" ")
+            iterations = len(cmds_list)
 
             for cnt in range(0,iterations,2):
                 print("Commands listed:", cmds_list[cnt:cnt+2])
                 self.car_controls.throttle=float(cmds_list[cnt])
-                #steer=input("Car Steering left or right : " or "forward")
-                steer=cmds_list[cnt+1]
-                # check first if the brakes are on
-                if(self.car_controls.brake ==1):
+                # steer = input("Car Steering left or right : " or "forward")
+                steer = cmds_list[cnt+1]
+                # Check if the brakes are on
+                if self.car_controls.brake == 1:
                     self.car_controls.brake = 0
                 else:
+                    # TODO: Get rid of this
                     pass
 
-                if(steer == "left"):
+                if steer == "left":
                     print("Go Left")
                     self.car_controls.steering=-0.5
-                elif(steer == "right"):
+                elif steer == "right":
                     print("Go Right")
                     self.car_controls.steering=0.5
-                elif(steer == "" or steer == "forward"):
+                elif steer == "" or steer == "forward":
                     print("Go Forward")
                     self.car_controls.steering=0
-                elif(steer=="brake"):
+                elif steer == "brake":
                     print("Braking!")
                     self.car_controls.brake= 1
-                elif (steer == "reverse"):
-                    print("reversing!")
-                    self.car_controls.is_manual_gear = True;
+                elif steer == "reverse":
+                    print("Reversing!")
+                    self.car_controls.is_manual_gear = True
                     self.car_controls.manual_gear = -1
                     self.car_controls.steering = 0
                 
-                elif (steer == "reverse_left"):
+                elif steer == "reverse_left":
                     print("Reverse Left")
-                    self.car_controls.steering=-0.5
-                    self.car_controls.is_manual_gear = True;
+                    self.car_controls.steering = -0.5
+                    self.car_controls.is_manual_gear = True
                     self.car_controls.manual_gear = -1
 
-                elif (steer == "reverse_right"):
-                    print("Reverse Left")
-                    self.car_controls.steering=0.5
-                    self.car_controls.is_manual_gear = True;
+                elif steer == "reverse_right":
+                    print("Reverse Right")
+                    self.car_controls.steering = 0.5
+                    self.car_controls.is_manual_gear = True
                     self.car_controls.manual_gear = -1
 
                 self.client.setCarControls(self.car_controls)
                
                 time.sleep(2)
-                if(self.car_controls.is_manual_gear == True):
-                    self.car_controls.is_manual_gear = False; # change back gear to auto
+                if self.car_controls.is_manual_gear:
+                    self.car_controls.is_manual_gear = False # Change back gear to auto
                     self.car_controls.manual_gear = 0  
 
-                if(self.record==True):
+                if self.record:
                     self.grab_images(cnt)
                 else:
+                    # TODO: Get rid of this statement if we won't be doing anything
                     pass
 
             
 def main():
-    airsim_cons=Airsim_console()
+    # Instantiate the console object
+    airsim_cons = AirsimConsole()
+    # Run the console to drive our vehicle in Airsim
     airsim_cons.run_cmds()
 
 
