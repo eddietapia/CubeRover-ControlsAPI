@@ -77,7 +77,7 @@ class airsim_data():
             
             if(modes=="Depth"):
                 print("Getting the Depth Data")
-                imgs.append(airsim.ImageRequest("0",airsim.ImageType.DepthVis))
+                imgs.append(airsim.ImageRequest("0",airsim.ImageType.DepthVis,True))
 
         requests= self.client.simGetImages(imgs)
 
@@ -86,7 +86,7 @@ class airsim_data():
         for req in requests:
             if(req.pixels_as_float):
                 print("Processing the Depth Image")
-                dimg_array = np.array(req.image_data_float)  
+                dimg_array = np.array(req.image_data_float).reshape(144,256)  
                 dimg_encoded= self.encode_img(dimg_array)
                 self.data_dict["depth"]= dimg_encoded
                 print("Completed Processing Depth")
