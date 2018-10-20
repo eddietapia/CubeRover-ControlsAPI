@@ -14,13 +14,14 @@ import base64
 import skimage
 import time
 from datetime import datetime
+import io
 
 class airsim_data():
     def __init__(self):
         print("Establishing connection to airsim!")
         self.client= airsim.CarClient()
         self.client.confirmConnection()
-        self.rover_state= airsim.getCarState()
+        self.rover_state= self.client.getCarState()
 
         print("Establishing Car controls")
         self.client.enableApiControl(True)
@@ -50,8 +51,9 @@ class airsim_data():
        
     def encode_img(self,image):
         # Convert the image into ubyte format!
-        with BytesIO() as output_bytes:
-            p_image=Image.from_array(skimage.img_as_ubyte(image))
+        with io.BytesIO() as output_bytes:
+            p_image=Image.fromarray(skimage.img_as_ubyte(image))
+            p_image.convert('RGB')
             p_image.save(output_bytes,'JPEG')
             bytes_data= output_bytes.getvalue()
 
@@ -70,9 +72,11 @@ class airsim_data():
         for modes in mode:
             if(modes=="RGB"):
                 # Grab RGB data accordingly
+                print("Getting the RGB data")
                 imgs.append(airsim.ImageRequest("1",airsim.ImageType.Scene))
             
-            if(modes=="Depth")
+            if(modes=="Depth"):
+                print("Getting the Depth Data")
                 imgs.append(airsim.ImageRequest("0",airsim.ImageType.DepthVis))
 
         requests= self.client.simGetImages(imgs)
@@ -81,22 +85,23 @@ class airsim_data():
 
         for req in requests:
             if(req.pixels_as_float):
-                print("Processing the Depth Images")
+                print("Processing the Depth Image")
                 dimg_array = np.array(req.image_data_float)  
                 dimg_encoded= self.encode_img(dimg_array)
                 self.data_dict["depth"]= dimg_encoded
                 print("Completed Processing Depth")
+
             elif(req.compress):
                 print("Processing the RGB Image")
-                img_array= np.array(Image.open(io.ByteIO(req.image_data_uint8)))
-                img_encoded= self.encode_img(img_array)
+                img_array= Image.open(io.BytesIO(req.image_data_uint8))
+                img_encoded= self.encode_img(np.array(img_array.convert('RGB')))
                 self.data_dict["rgb"]= img_encoded
 
 
     def extract_imu(self):
         # Grab the car state kinematics
         position= self.rover_state.kinematics_estimated.position
-        oriented= self.rover_state.kinematics_estiated.orientation
+        oriented= self.rover_state.kinematics_estimated.orientation
         self.data_dict["imu"]["speed"]=self.rover_state.speed
         self.data_dict["imu"]["px"]=position.x_val
         self.data_dict["imu"]["py"]=position.y_val
@@ -133,13 +138,13 @@ class airsim_data():
             self.data_dict["time"]= datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.extract_images(mode=["RGB","Depth"])
             self.extract_imu()
-            print("Data currently recorded is:",data_dict)
+            print("Data currently recorded is:",self.data_dict)
             time.sleep(2)
 
 
 def main():
     # Call Airsim. (Have him on speed dial)
-    pkg=self.airsim_data
+    pkg=airsim_data()
     pkg.run()
 
 main()
