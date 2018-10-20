@@ -134,13 +134,13 @@ class AirsimConsole:
                     pass
 
                 if steer == "left":
-                    self.car_controls.steering=-0.5
+                    self.car_controls.steering = -0.5
                 elif steer == "right":
-                    self.car_controls.steering=0.5
+                    self.car_controls.steering = 0.5
                 elif steer == "" or steer == "forward":
-                    self.car_controls.steering=0
+                    self.car_controls.steering = 0
                 elif steer == "brake":
-                    self.car_controls.brake= 1
+                    self.car_controls.brake = 1
                 elif steer == "reverse":
                     self.car_controls.is_manual_gear = True
                     self.car_controls.manual_gear = -1
@@ -150,13 +150,13 @@ class AirsimConsole:
                 print("Go Forward")
                 time.sleep(2)
                 if self.car_controls.is_manual_gear:
-                    self.car_controls.is_manual_gear = False # Change back gear to auto
+                    self.car_controls.is_manual_gear = False  # Change back gear to auto
                     self.car_controls.manual_gear = 0  
 
                 if self.record:
                     self.grab_images(cnt)
                 else:
-                    #TODO: Get rid of this statement if we won't be doing anything
+                    # TODO: Get rid of this statement if we won't be doing anything
                     pass
 
                 cnt = cnt + 1
