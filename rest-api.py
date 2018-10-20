@@ -21,7 +21,13 @@ vehicles = [
 
 
 class Vehicle(Resource):
+
     def get(self, name):
+        """
+        Will return user if the user is in the list
+        :param name:
+        :return: tuple with http status code. 200 if user exists, 404 otherwise
+        """
         for user in vehicles:
             if name == user["name"]:
                 return user, 200
@@ -33,6 +39,7 @@ class Vehicle(Resource):
         :param name: the same of the vehicle
         :return: a tuple with the second argument as the http status code
         """
+        # Create a parser for the vehicle data
         parser = reqparse.RequestParser()
         parser.add_argument("opcode")
         parser.add_argument("state")
@@ -60,6 +67,7 @@ class Vehicle(Resource):
         :param name: the name of the vehicle
         :return: tuple with the second argument as the http status code
         """
+        # Create a parser for the vehicle data
         parser = reqparse.RequestParser()
         parser.add_argument("opcode")
         parser.add_argument("state")
@@ -82,11 +90,16 @@ class Vehicle(Resource):
         # Return 201, created
         return user, 201
 
-
     def delete(self, name):
+        """
+        Will delete a user from the list of vehicles
+        :param name: the name of the vehicle
+        :return: tuple with info of the user that was deleted
+        """
         global vehicles
         vehicles = [user for user in vehicles if user["name"] != name]
         return "{} is deleted.".format(name), 200
+
 
 api.add_resource(Vehicle, "/user/<string:name>")
 app.run(debug=True)
