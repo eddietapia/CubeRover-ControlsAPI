@@ -44,21 +44,21 @@ class SendVehicleData:
     def options(self):
         pass
 
-    def get_status(self):
-        """
-        Will return the HTTP status code of the previous request and also print it
-        :return: the numeric HTTP status code
-        """
-        if not self.r.status_is_valid():
-            print(self.r.raise_for_status())
-        else:
-            print("HTTP status code: ", self.status_code)
-            print("Additional Details:\n", self.r.text)
-        return self.status_code
-
     def status_is_valid(self):
         """
         Checks if the status code of the previous request is valid
         :return: True if status is ok, false otherwise
         """
         return self.r.status_code == requests.codes.ok
+
+    def get_status(self):
+        """
+        Will return the HTTP status code of the previous request and also print it
+        :return: the numeric HTTP status code
+        """
+        if not self.status_is_valid():
+            print(self.r.raise_for_status())
+        else:
+            print("HTTP status code: ", self.r.status_code)
+            print("Additional Details:\n", self.r.text)
+        return self.status_code
