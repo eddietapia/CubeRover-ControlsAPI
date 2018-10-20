@@ -15,6 +15,7 @@ import skimage
 import time
 from datetime import datetime
 import io
+import json
 
 class airsim_data():
     def __init__(self):
@@ -119,10 +120,10 @@ class airsim_data():
         # forward until it falls off!
         for cnt in range(0,steps):
 
-            if(steps% 2 ==0):
+            if(steps+1% 2 ==0):
+                self.rover_controls.throttle=0
                 self.rover_controls.brake=1
-            else:
-                self.rover_controls.brake=0
+            
 
             self.rover_controls.throttle=float(throttle)
             
@@ -141,7 +142,10 @@ class airsim_data():
             print("Data currently recorded is:",self.data_dict)
             time.sleep(2)
 
-
+            if(self.rover_controls.brake==1):
+                self.rover_controls.brake=0
+        with open('example_data.json', 'w') as fp:
+            json.dump(self.data_dict, fp)
 def main():
     # Call Airsim. (Have him on speed dial)
     pkg=airsim_data()
