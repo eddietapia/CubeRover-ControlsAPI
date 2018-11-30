@@ -165,6 +165,7 @@ class AirsimConsole:
             cmds_list = cmds.split(" ")
             iterations = len(cmds_list)
 
+            time_delay= 10
             for cnt in range(0,iterations,2):
                 print("Commands listed:", cmds_list[cnt:cnt+2])
                 self.car_controls.throttle=float(cmds_list[cnt])
@@ -207,9 +208,22 @@ class AirsimConsole:
                     self.car_controls.is_manual_gear = True
                     self.car_controls.manual_gear = -1
 
-                self.client.setCarControls(self.car_controls)
                
+                # simulate the time delay of cmd transmission
+                time.sleep(time_delay)
+
+                self.client.setCarControls(self.car_controls)
+
                 time.sleep(2)
+
+                # Stop the car!
+                self.car_controls.brake =1 
+                self.client.setCarControls(self.car_controls)
+
+
+
+
+
                 if self.car_controls.is_manual_gear:
                     self.car_controls.is_manual_gear = False # Change back gear to auto
                     self.car_controls.manual_gear = 0  
@@ -220,6 +234,8 @@ class AirsimConsole:
                     # TODO: Get rid of this statement if we won't be doing anything
                     pass
 
+                # set the time of data transmission
+                time.sleep(time_delay)
             
 def main():
     # Instantiate the console object
