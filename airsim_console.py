@@ -16,22 +16,26 @@ import setup_path
 class AirsimConsole:
 
     def __init__(self):
-        print("Connecting to Airsim Client: ")
+        print("Connecting to Airsim Client:")
         self.client = airsim.CarClient()
         self.client.confirmConnection()
-        print("Connection confirmed. Enabling car controls ")
+        print("Connection confirmed. Enabling car controls...")
         self.client.enableApiControl(True)
         self.car_controls = airsim.CarControls()
 
-        print("Car controls enabled. Please enter command parameters ")
+        print("Car controls enabled.")
         self.car_state = self.client.getCarState()
-        self.mode = bool(input("Input car Mode: True (distance commands) " or "False"))
-        if self.mode:
-            print("Going to distance mode! ")
-            pass
-        else:
-            self.repeat = int(input("How many repeats? " or "3"))
-        self.record = bool(input("Record Images? " or "False"))
+        self.mode = True
+        """
+        self.mode = input("Would you like the rover to repeat commands?(yes/no)"))
+        if self.mode == "yes":
+            self.mode = False
+            self.repeat = int(input("How many repeats?\n"))
+            if self.repeat < 0 or self.repeat > 30:
+                self.repeat = 2
+        """
+        self.record = (input("Do you want to record images? (yes/no)"))
+        self.record = True if self.record == 'yes' else False
         self.fold = os.getcwd()+'/pictures3/'
 
         self.projectionMatrix = np.array([[1, 0.000000000, 0.000000000, -127.5000000000],
@@ -118,9 +122,14 @@ class AirsimConsole:
         self.dimg = dimg
 
     def run_cmds(self):
-        print("Starting systems! Please initialize :")
+        print("Starting to move the CubeRover...")
         cnt = 0
-
+        command_prompt = "You will have to enter two commands to move the CubeRover.\nThe input takes in \
+                         two values separated by spaces.\nThe first value, will determine the throttle. \
+                         You can put any numerical value from 1-20 here.\nFor the second value, it will \
+                         take in the direction. You can input forward, backward, left, or right for this.\n \
+                         Here are some examples of some possible inputs:\n4 left\n5 forward\n8 backward\n"
+        print(command_prompt)
         if not self.mode:
             while cnt < self.repeat:
                 self.car_controls.throttle = float(input("Car Throttle (0-1): ") or "0")
@@ -161,7 +170,7 @@ class AirsimConsole:
 
                 cnt = cnt + 1
         else:
-            cmds = input("Please input commands (split by space): Throttle direction ")
+            cmds = input("Please input a command (throttle direction)\n")
             cmds_list = cmds.split(" ")
             iterations = len(cmds_list)
 
