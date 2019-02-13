@@ -229,10 +229,6 @@ class AirsimConsole:
                 self.car_controls.brake =1 
                 self.client.setCarControls(self.car_controls)
 
-
-
-
-
                 if self.car_controls.is_manual_gear:
                     self.car_controls.is_manual_gear = False # Change back gear to auto
                     self.car_controls.manual_gear = 0  
@@ -245,12 +241,32 @@ class AirsimConsole:
 
                 # set the time of data transmission
                 time.sleep(time_delay)
+    def draw_square(self, step_size):
+        # TODO: Get ground truth depth
+        image_count = 0
+        # Check if the brakes are on
+        if self.car_controls.brake == 1:
+            self.car_controls.brake = 0
+        # Drive forward
+        for i in range(step_size):
+            print("Moving Forward")
+            self.car_controls.steering = 0
+            self.client.setCarControls(self.car_controls)
+            time.sleep(2)
+            # Stop the car to take a picture
+            self.car_controls.brake =1 
+            self.client.setCarControls(self.car_controls)
+            self.grab_images(image_count)
+            image_count += 1
+
             
 def main():
     # Instantiate the console object
     airsim_cons = AirsimConsole()
     # Run the console to drive our vehicle in Airsim
     airsim_cons.run_cmds()
+    # Draw a square as we collect image and imu data
+    # airsim_cons.draw_square(5)
 
 
 if __name__ == '__main__':
