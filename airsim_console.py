@@ -241,24 +241,34 @@ class AirsimConsole:
 
                 # set the time of data transmission
                 time.sleep(time_delay)
-    def draw_square(self, step_size):
+    def draw_square(self, step_size, timeStraight, timeTurn):
         # TODO: Get ground truth depth
         image_count = 0
         # Check if the brakes are on
         if self.car_controls.brake == 1:
             self.car_controls.brake = 0
         # Drive forward
-        for i in range(step_size):
-            print("Moving Forward")
-            self.car_controls.steering = 0
+        for j in range(4):
+            print("Turning left")
+            self.car_controls.steering = -0.5
             self.client.setCarControls(self.car_controls)
-            time.sleep(2)
+            time.sleep(timeTurn)
             # Stop the car to take a picture
             self.car_controls.brake =1 
             self.client.setCarControls(self.car_controls)
             self.grab_images(image_count)
             image_count += 1
-
+            for i in range(step_size):
+                print("Moving Forward")
+                self.car_controls.steering = 0
+                self.client.setCarControls(self.car_controls)
+                time.sleep(timeStraight)
+                # Stop the car to take a picture
+                self.car_controls.brake =1 
+                self.client.setCarControls(self.car_controls)
+                self.grab_images(image_count)
+                image_count += 1
+        
             
 def main():
     # Instantiate the console object
